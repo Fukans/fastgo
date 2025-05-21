@@ -7,6 +7,7 @@
 package app
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,28 +26,41 @@ const (
 
 // onInitialize 设置需要读取的配置文件名、环境变量，并将其内容读取到 viper 中.
 func onInitialize() {
+	// 先设置环境变量，确保环境变量优先级高于配置文件
+	setupEnvironmentVariables()
+
+	// 设置配置文件
+	setupConfigFile()
+
+	// 读取配置文件
+	if err := viper.ReadInConfig(); err != nil {
+		// 如果是配置文件不存在错误，则只打印信息
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			fmt.Printf("No config file found in search paths\n")
+		} else {
+			// 其他错误则需要终止程序
+			cobra.CheckErr(fmt.Errorf("fatal error loading config file: %w", err))
+		}
+	}
+}
+
+// setupConfigFile 设置配置文件的相关选项
+func setupConfigFile() {
 	if configFile != "" {
 		// 从命令行选项指定的配置文件中读取
 		viper.SetConfigFile(configFile)
-	} else {
-		// 使用默认配置文件路径和名称
-		for _, dir := range searchDirs() {
-			// 将 dir 目录加入到配置文件的搜索路径
-			viper.AddConfigPath(dir)
-		}
-
-		// 设置配置文件格式为 YAML
-		viper.SetConfigType("yaml")
-
-		// 配置文件名称（没有文件扩展名）
-		viper.SetConfigName(defaultConfigName)
+		return
 	}
 
-	// 读取环境变量并设置前缀
-	setupEnvironmentVariables()
+	// 使用默认配置文件路径和名称
+	for _, dir := range searchDirs() {
+		viper.AddConfigPath(dir)
+	}
 
-	// 读取配置文件.如果指定了配置文件名，则使用指定的配置文件，否则在注册的搜索路径中搜索
-	_ = viper.ReadInConfig()
+	// 设置配置文件格式为 YAML
+	viper.SetConfigType("yaml")
+	// 配置文件名称（没有文件扩展名）
+	viper.SetConfigName(defaultConfigName)
 }
 
 // setupEnvironmentVariables 配置环境变量规则.
