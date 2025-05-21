@@ -7,6 +7,9 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -58,6 +61,9 @@ func run(opts *options.ServerOptions) error {
 	if err := opts.Validate(); err != nil {
 		return err
 	}
+
+	jsonData, _ := json.MarshalIndent(opts, "", "  ")
+	fmt.Println(string(jsonData))
 
 	// 获取应用配置.
 	// 将命令行选项和应用配置分开，可以更加灵活的处理 2 种不同类型的配置.
