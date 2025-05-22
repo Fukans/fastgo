@@ -16,8 +16,14 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+// versionValue 类型：实现了 flag.Value 接口
 type versionValue int
 
+// 通过实现 flag.Value 接口，将 -version 参数与 versionValue 类型绑定，支持以下输入：
+// -version       → 等价于 -version=true（输出简化的版本信息）
+// -version=true  → 输出简化版本信息
+// -version=false → 不输出版本信息
+// -version=raw   → 输出原始版本信息（如 raw 或具体版本字符串）
 const (
 	// 未设置版本.
 	VersionNotSet versionValue = 0
@@ -37,6 +43,7 @@ func (v *versionValue) Get() any {
 	return *v
 }
 
+// Set 方法​​：解析输入字符串，支持 true/false 和 raw。
 func (v *versionValue) Set(s string) error {
 	if s == strRawVersion {
 		*v = VersionRaw
@@ -51,6 +58,7 @@ func (v *versionValue) Set(s string) error {
 	return err
 }
 
+// ​​String 方法​​：返回当前状态的字符串表示（如 true、false 或 raw）。
 func (v *versionValue) String() string {
 	if *v == VersionRaw {
 		return strRawVersion
@@ -70,6 +78,8 @@ func VersionVar(p *versionValue, name string, value versionValue, usage string) 
 	flag.Lookup(name).NoOptDefVal = "true"
 }
 
+// Version 函数：创建一个新的版本标志，并将其添加到全局 FlagSet 中。
+// 是 VersionVar 的便捷包装
 func Version(name string, value versionValue, usage string) *versionValue {
 	p := new(versionValue)
 	VersionVar(p, name, value, usage)
