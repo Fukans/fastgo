@@ -45,11 +45,11 @@ func FromError(err error) *ErrorX {
 	}
 
 	// 检查传入的 error 是否已经是 ErrorX 类型的实例.
-	// 如果错误可以通过 errors.As 转换为 *ErrorX 类型，则直接返回该实例.
+	// 尝试将 err 转换为 ErrorX 类型，如果转换成功，返回转换后的 errx.
 	if errx := new(ErrorX); errors.As(err, &errx) {
 		return errx
 	}
 
 	// 默认返回未知错误错误. 该错误代表服务端出错
-	return New(ErrInternal.Code, ErrInternal.Reason, err.Error())
+	return New(ErrInternal.Code, ErrInternal.Reason, "%s", err.Error())
 }
